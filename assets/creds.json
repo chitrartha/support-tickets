@@ -1,13 +1,1 @@
-{
-  "type": "service_account",
-  "project_id": "hadoop-187101",
-  "private_key_id": "28fa6346da5ecfe26f4d9644b64bc8ca7918dd6d",
-  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDGzKsKkf3Q3X8P\nC+/Ge0C7QtUjud5tYU+PoI2DXhSLgzLmKf5HiOTINbk3zHvGabfbhOBRGh5YuqvO\nqU3qHr24/nyDRWi26LWQHOkyVZ+jbDXAvZNZMpuvAMFqBGCputLFijqFEGUbNhoV\nNMmpywHl8+9qxTjsSudFfrhIM7LGoQnYL5htlTqvaVXA4pF4mM+8EiRk3Rpwj6MB\nXzp0mSSvXcAFzCt5DE7OLs71Fv57bYhUKxPrELFDPP8NG4fCtI1PTqU9EEA199s+\nL17ZHe/AhbSAHMNS+PhbsFNy5XxeFK6S40XuuJBPGqKKxv8vI+YYjd7uWGv+7xet\ndkuVP6DzAgMBAAECggEAA2/1gyTGvo5IjKI4XqEHRlWfqX2kvr/AfZYZQaIQ+TU8\nXjtv+0epgQa2HE9g/Stwc49mxjA37HEp2FRtavS7c2U/Ejv91Vp3t+AFbjU0d0G/\nOi/CSk1e4MCYF4paK4Ugm4F02pPP07p0lVTzfwfqEVJNm6CBB/Y8Qnja8dtRpi/f\nKQb45ahQs7Fsj7c/KNiB3wIIvBJRUU6rNSxzThCj7hkL4BoUHXV3QJAQumeE7RYO\ngw2mfabiKSoQMcaA5LvCENtRR2JOSM1xEzEpK8i4gtQFSViHqWu36merO2CsBm7i\nMbn/L57IrWs+Mkbc1xHCA3npi96DSRhnB4a4mwl7wQKBgQDtnG+Ap4RCcqYqNCYr\nnf4AeobsMiRDBn6FJjZPTbpyrowxSEeHrNTGtUicrMYSl8HWwH1OlUjW8FdwgOij\nsBi3RfyWKPp6Axb7qLQKpe/Agi9gVsHyLVap0ZSnl+vNqycDpbmOGSqIDYn5mBqG\nAma9NHsXY+h7duflr0mzOoOmwQKBgQDWL0uJmxgnymuu7PtOTNe4XBw9e7f2fLU9\nq6Tp1JyA0BBUm936Y+ak0dox4Amu8ZGAwRa8fmYJOmjYfwNpFVxciw9iGDUtFC2Z\ncc8jCb/VWw8aDlyVvgqHSq6ZNPL27jbV5pscHUCNH7u/AgXL6bH1Sqfg7ipl3ry6\nWVmPaPwIswKBgHqt80/8rafVI//UTwTkHNnIaVMYDGritn4unYnSevptLorfY7ck\nP/Occ7IY7md5HSaw2cGyCBqZmrvGgtbIu+ocY25wF+rZH4utrc91n1TIoodeI+LT\nD9S8FcF2CdR1kr4qWaSJT9FRFDTfGIqqQLtdllQcTFM6sD6Bg07bXk/BAoGBANGJ\nlXm6zIfpBS4t07GHhadsHYic551x5ZG+wWitQqrWYpOTpTeX0oW+c5tFldObqwBu\nZoLjmYk/pmDe6YQ9jI1Q0izih+thCTdL2xxpJk5hdkXEdRldwUkYa/Wgkm23INhk\ncaywhX1K5U75eJhEOYBCmDh6Z+ofXT1lujONvrv3AoGAdNCj0e48bSFMQ0Ht0Oop\nwj1EJKMTapjJyj/hRwALDV+V3X/FuDWrJTtXNTTvrf0PMt+yVzaLzo6dj1LRX/Ob\nuWBYDOuSBuZlDGvzAWzf9drxDr+nh/cEoDRXxRLhBelfoKROA89iDbtWRap/fPmP\ndcUbzVQN+CYJX+ssg9klvlI=\n-----END PRIVATE KEY-----\n",
-  "client_email": "ai-agent@hadoop-187101.iam.gserviceaccount.com",
-  "client_id": "105427177552025759310",
-  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-  "token_uri": "https://oauth2.googleapis.com/token",
-  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/ai-agent%40hadoop-187101.iam.gserviceaccount.com",
-  "universe_domain": "googleapis.com"
-}
+{}
