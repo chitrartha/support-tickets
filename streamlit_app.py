@@ -7,7 +7,7 @@ from pathlib import Path
 import base64
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
-import os # Import os for environment variables
+import os # Import os for environment variables (though we're reverting its use for creds)
 import warnings # Import warnings to suppress the rsa UserWarning
 
 # Suppress the specific rsa UserWarning globally if you're sure it's not a critical issue for your use case
@@ -48,6 +48,7 @@ if "MOCK_DATABASE" not in st.session_state:
 # --- Helper function to get GCP credentials from the JSON file ---
 @st.cache_resource(ttl=3600) # Cache the loaded credentials for efficiency
 def _get_gcp_creds():
+    # --- RESTORED TO YOUR ORIGINAL WORKING LOGIC ---
     if not GCP_CREDS_FILE.exists():
         st.error(f"Credentials file not found at: {GCP_CREDS_FILE}. Please ensure it exists in your 'assets/' folder.")
         st.stop()
@@ -61,6 +62,8 @@ def _get_gcp_creds():
     except Exception as e:
         st.error(f"An unexpected error occurred while reading credentials file {GCP_CREDS_FILE}: {e}.")
         st.stop()
+    # --- END RESTORED LOGIC ---
+
 
 # Function to fetch data from Google Sheet
 @st.cache_resource(ttl=3600) # Cache the connection and data for an hour (3600 seconds)
@@ -373,19 +376,36 @@ if "current_input_stock" not in st.session_state:
     st.session_state.current_input_stock = ""
 if "last_selected_suggestion" not in st.session_state:
     st.session_state.last_selected_suggestion = ""
+if "reports_to_display_in_tab1" not in st.session_state: # New state to hold reports for tab1
+    st.session_state.reports_to_display_in_tab1 = []
 
 
 # --- TABS FOR NAVIGATION ---
 tab1, tab2 = st.tabs(["Analyze Specific Stocks", "Browse All Reports"])
+
+# This helper function will be used by the selectbox's on_change
+def _add_selected_stock_from_dropdown(selected_value):
+    if selected_value and selected_value not in st.session_state.selected_stocks_for_analysis:
+        st.session_state.selected_stocks_for_analysis.append(selected_value)
+        st.session_state.current_input_stock = "" # Clear text input
+        st.session_state.last_selected_suggestion = selected_value # Store for persistence
+        # No clearing of reports_to_display_in_tab1 here
+        # st.rerun() # This rerun is now handled by the main flow of the selectbox below
+
+# This helper function clears all related states for tab1
+def _clear_all_tab1_selections():
+    st.session_state.selected_stocks_for_analysis = []
+    st.session_state.current_input_stock = ""
+    st.session_state.last_selected_suggestion = ""
+    st.session_state.reports_to_display_in_tab1 = [] # Clear reports here
+    st.rerun() # Force a rerun to clear the UI
+
 
 with tab1:
     st.header("Analyze Stocks by Name")
 
     # Fetch all available stock names for autocomplete
     all_available_stock_names = get_all_stock_names()
-
-    # --- Debugging: Show fetched stock names ---
-    # st.write("Fetched Stock Names (for debugging):", all_available_stock_names)
 
     # Input for typing stock names. on_change is key for dynamic updates.
     user_input = st.text_input(
@@ -405,34 +425,26 @@ with tab1:
         ]
         suggestions.sort() # Keep suggestions sorted
 
-    # --- Debugging: Show filtered suggestions ---
-    # st.write("Filtered Suggestions (for debugging):", suggestions)
-
     # Display suggestions in a selectbox. It will appear/disappear dynamically.
     if suggestions:
         # Determine the initial index for the selectbox to prevent unwanted auto-selection
-        # If the current input exactly matches a suggestion, pre-select it
         initial_index = 0
-        if user_input in suggestions:
-            initial_index = suggestions.index(user_input) + 1 # +1 because of the "" empty option
+        if st.session_state.last_selected_suggestion in suggestions:
+            initial_index = suggestions.index(st.session_state.last_selected_suggestion) + 1 # +1 for the "" empty option
 
         selected_suggestion_from_box = st.selectbox(
             "Did you mean?",
             options=[""] + suggestions, # Add an empty option at the top
             index=initial_index,
             key="suggestion_selectbox",
-            help="Select a suggestion or continue typing.",
-            # on_change callback for the selectbox
+            help="Select a suggestion from the list.",
             on_change=lambda: _add_selected_stock_from_dropdown(st.session_state.suggestion_selectbox)
         )
+        # This explicit rerun is necessary because on_change in selectbox doesn't always trigger it consistently
+        # if the value itself (the actual object) remains the same after a programmatic update.
+        if selected_suggestion_from_box and selected_suggestion_from_box != st.session_state.last_selected_suggestion:
+             st.rerun()
 
-        # This helper function for on_change will update state and rerun
-        def _add_selected_stock_from_dropdown(selected_value):
-            if selected_value and selected_value not in st.session_state.selected_stocks_for_analysis:
-                st.session_state.selected_stocks_for_analysis.append(selected_value)
-                st.session_state.current_input_stock = "" # Clear text input
-                st.session_state.last_selected_suggestion = selected_value # Store for future reruns
-                st.rerun() # Trigger a rerun to update the UI
 
     # Display currently selected stocks as "pills" or tags
     if st.session_state.selected_stocks_for_analysis:
@@ -448,44 +460,57 @@ with tab1:
                 if st.button("Remove", key=f"remove_{stock_item}"):
                     st.session_state.selected_stocks_for_analysis.remove(stock_item)
                     st.session_state.last_selected_suggestion = "" # Reset suggestion state
-                    # Don't clear user_input here if they were typing something else
-                    st.rerun()
+                    st.session_state.reports_to_display_in_tab1 = [] # Clear reports only when removing a stock
+                    st.rerun() # Rerun to update the list and clear reports
 
     # Manually add stock from text input if it's not empty and not already added
-    # This button is important for users who type a full name not in suggestions or prefer to just type.
     if user_input and user_input not in st.session_state.selected_stocks_for_analysis:
         if st.button(f"Add '{user_input}' to list"):
             st.session_state.selected_stocks_for_analysis.append(user_input)
             st.session_state.current_input_stock = "" # Clear input after adding
             st.session_state.last_selected_suggestion = "" # Reset suggestion state
+            # No clearing of reports_to_display_in_tab1 here
             st.rerun()
 
     st.markdown("---") # Separator
 
-    if st.button("Generate Reports for Selected Stocks"):
-        if st.session_state.selected_stocks_for_analysis:
-            st.info(f"Found {len(st.session_state.selected_stocks_for_analysis)} stock(s) to process.")
-            for stock_name in st.session_state.selected_stocks_for_analysis:
-                with st.spinner(f"Fetching data for {stock_name}..."):
-                    report_data_list = fetch_data(stock_name)
-                if report_data_list:
-                    display_report(report_data_list[0])
-                else:
-                    st.error(f"No data found for '{stock_name}'. Please ensure the name is correct and it exists in the Google Sheet.")
-                st.divider()
-            # Clear selected stocks and input after generating reports
-            st.session_state.selected_stocks_for_analysis = []
-            st.session_state.current_input_stock = ""
-            st.session_state.last_selected_suggestion = ""
-            st.rerun() # Rerun to clear the UI after submission
-        else:
-            st.warning("Please add at least one stock to analyze.")
+    # Row for action buttons: Generate and Clear
+    col_generate, col_clear = st.columns([0.5, 0.5])
+
+    with col_generate:
+        if st.button("Generate Reports for Selected Stocks"):
+            if st.session_state.selected_stocks_for_analysis:
+                # Only set the reports_to_display_in_tab1 and let them render
+                # This will ensure the reports stay until cleared or regenerated
+                st.session_state.reports_to_display_in_tab1 = list(st.session_state.selected_stocks_for_analysis)
+                # No st.rerun() here! This is crucial for the reports to show immediately.
+            else:
+                st.warning("Please add at least one stock to analyze before generating reports.")
+
+    with col_clear:
+        # Show clear button only if there's something to clear
+        if st.session_state.selected_stocks_for_analysis or st.session_state.current_input_stock or st.session_state.reports_to_display_in_tab1:
+            st.button("Clear All Selections & Reports", on_click=_clear_all_tab1_selections)
+
+
+    # Display reports only if reports_to_display_in_tab1 is populated
+    if st.session_state.reports_to_display_in_tab1:
+        st.subheader("Generated Reports:")
+        for stock_name in st.session_state.reports_to_display_in_tab1:
+            with st.spinner(f"Fetching data for {stock_name}..."):
+                report_data_list = fetch_data(stock_name)
+            if report_data_list:
+                display_report(report_data_list[0])
+            else:
+                st.error(f"No data found for '{stock_name}'. Please ensure the name is correct and it exists in the Google Sheet.")
+            st.divider()
 
 
 with tab2:
     st.header("Browse All Available Reports")
 
     # Ensure mock database is populated with Google Sheet data for Browse
+    # This ensures that Tab 2 always pulls the latest data
     google_sheet_data_all = get_google_sheet_data()
     st.session_state.MOCK_DATABASE.update(google_sheet_data_all)
 
